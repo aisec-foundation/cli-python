@@ -65,9 +65,7 @@ def cmd_scan(args):
 
     # Profile
     if args.full:
-        body["profile"] = "aggressive"
-        body["scope"] = "subdomain"
-        body["max_iterations"] = 50
+        body["profile"] = "full"
     elif args.aggressive:
         body["profile"] = "aggressive"
     elif args.stealth:
@@ -81,15 +79,38 @@ def cmd_scan(args):
     if args.timeout:
         body["timeout_minutes"] = args.timeout
 
+    # AI tuning
+    if args.temperature is not None:
+        body["temperature"] = args.temperature
+
     # Auth
     if args.username:
         body["username"] = args.username
     if args.password:
         body["password"] = args.password
+    if args.cookies:
+        cookies_val = args.cookies
+        if cookies_val.startswith("@"):
+            with open(cookies_val[1:]) as f:
+                cookies_val = f.read()
+        body["cookies_json"] = cookies_val
 
     # Network
     if args.proxy:
         body["proxy"] = args.proxy
+    if args.headers:
+        headers_val = args.headers
+        if headers_val.startswith("@"):
+            with open(headers_val[1:]) as f:
+                headers_val = f.read()
+        custom_headers = {}
+        for pair in headers_val.replace("\n", ",").split(","):
+            pair = pair.strip()
+            if ":" in pair:
+                k, v = pair.split(":", 1)
+                custom_headers[k.strip()] = v.strip()
+        if custom_headers:
+            body["custom_headers"] = custom_headers
 
     # Recon
     if args.skip_recon:
@@ -391,12 +412,20 @@ def main():
                         help="Scan scope (default: target)")
     scan_p.add_argument("--timeout", "-t", type=int, help="Timeout in minutes, 0=unlimited")
 
+    # AI tuning
+    scan_p.add_argument("--temperature", type=float,
+                        help="AI temperature 0.0-1.0 (default: 0.4)")
+
     # Auth
     scan_p.add_argument("--username", "-u", help="Username for authenticated scanning")
     scan_p.add_argument("--password", "-p", help="Password for authenticated scanning")
+    scan_p.add_argument("--cookies",
+                        help="Session cookies as JSON string or @filepath (e.g. @cookies.json)")
 
     # Network
     scan_p.add_argument("--proxy", help="Proxy URL (e.g. http://127.0.0.1:8080)")
+    scan_p.add_argument("--headers",
+                        help="Custom headers as Key:Value pairs, comma-separated or @filepath")
 
     # Recon control
     scan_p.add_argument("--skip-recon", action="store_true", help="Skip all recon")
