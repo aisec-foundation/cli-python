@@ -119,7 +119,13 @@ def cmd_scan(args):
 
     scan = r.json()
     scan_id = scan["id"]
-    console.print(f"[green]Scan created:[/green] [dim]{scan_id}[/dim]")
+
+    if scan.get("status") == "queued":
+        pos = scan.get("queue_position", "?")
+        console.print(f"[yellow]Scan queued (position {pos}). Waiting for a slot...[/yellow]")
+    else:
+        console.print(f"[green]Scan created:[/green] [dim]{scan_id}[/dim]")
+
     console.print(f"[dim]Streaming output...[/dim]\n")
 
     # ── Connect to WebSocket ───────────────────────────────────────
