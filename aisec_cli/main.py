@@ -29,6 +29,7 @@ from rich.text import Text
 console = Console()
 
 __version__ = "0.1.0"
+DEFAULT_API = "https://api.aisec.tools"
 
 
 # ── Scan ────────────────────────────────────────────────────────────────
@@ -329,15 +330,11 @@ def cmd_status(args):
 def _resolve_auth(args):
     """Resolve token and API URL from args or env vars."""
     token = getattr(args, "token", None) or os.environ.get("AISEC_TOKEN", "")
-    api_url = getattr(args, "api", None) or os.environ.get("AISEC_API", "")
+    api_url = getattr(args, "api", None) or os.environ.get("AISEC_API", "") or DEFAULT_API
 
     if not token:
         console.print("[red]Token required. Use --token or set AISEC_TOKEN env var.[/red]")
-        console.print("[dim]Get your token at: Dashboard \u2192 Settings \u2192 Generate Key[/dim]")
-        sys.exit(1)
-
-    if not api_url:
-        console.print("[red]API URL required. Use --api or set AISEC_API env var.[/red]")
+        console.print("[dim]Get your token at: https://app.aisec.tools → Settings → Generate Key[/dim]")
         sys.exit(1)
 
     return token, api_url.rstrip("/")

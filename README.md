@@ -10,14 +10,13 @@ pip install git+https://github.com/stuseek/aisec-cli.git
 
 ## Setup
 
-Get your API token from the dashboard (Settings → Generate Key), then:
+Get your API token from the dashboard at [app.aisec.tools](https://app.aisec.tools) → Settings → Generate Key:
 
 ```bash
 export AISEC_TOKEN=ask_your_token_here
-export AISEC_API=https://your-api-url.com
 ```
 
-Or pass them as flags: `--token` and `--api`.
+That's it. The CLI connects to `api.aisec.tools` by default.
 
 ## Usage
 
