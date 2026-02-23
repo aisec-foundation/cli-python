@@ -21,12 +21,20 @@ import signal
 import sys
 import time
 
+import random
+
 import requests
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
 console = Console()
+
+THINKING_VERBS = [
+    "Thinking", "Analyzing", "Probing", "Investigating", "Evaluating",
+    "Inspecting", "Scanning", "Crafting", "Assessing", "Examining",
+    "Mapping", "Enumerating", "Fingerprinting", "Strategizing",
+]
 
 __version__ = "0.1.0"
 DEFAULT_API = "https://api.aisec.tools"
@@ -192,6 +200,21 @@ def cmd_scan(args):
     findings_count = 0
     total_cost = 0.0
 
+    thinking_status = None  # Rich Status spinner
+
+    def _stop_thinking():
+        nonlocal thinking_status
+        if thinking_status:
+            thinking_status.stop()
+            thinking_status = None
+
+    def _start_thinking():
+        nonlocal thinking_status
+        _stop_thinking()
+        verb = random.choice(THINKING_VERBS)
+        thinking_status = console.status(f"[dim italic]{verb}[/dim italic]", spinner="dots", spinner_style="cyan")
+        thinking_status.start()
+
     try:
         ws = websocket.WebSocket()
         ws.settimeout(300)
@@ -220,7 +243,14 @@ def cmd_scan(args):
             msg_type = msg.get("type", "")
             data = msg.get("data", {})
 
-            if msg_type == "console":
+            if msg_type == "thinking":
+                if data.get("status") == "start":
+                    _start_thinking()
+                else:
+                    _stop_thinking()
+
+            elif msg_type == "console":
+                _stop_thinking()
                 text = data.get("text", "")
                 if text:
                     sys.stdout.write(text + "\n")
@@ -230,15 +260,18 @@ def cmd_scan(args):
                 console.print("[green]Scan started on server[/green]")
 
             elif msg_type == "finding":
+                _stop_thinking()
                 findings_count += 1
 
             elif msg_type in ("credits_update", "cost_update"):
                 total_cost = data.get("credits_used", data.get("cost", total_cost))
 
             elif msg_type == "error":
+                _stop_thinking()
                 console.print(f"[red][ERROR] {data.get('message', 'Unknown error')}[/red]")
 
             elif msg_type == "scan_complete":
+                _stop_thinking()
                 findings_count = data.get("findings", findings_count)
                 total_cost = data.get("credits_used", data.get("cost", total_cost))
                 duration = data.get("duration", time.time() - start_time)
@@ -267,6 +300,7 @@ def cmd_scan(args):
     except Exception as e:
         console.print(f"\n[red]Error: {e}[/red]")
     finally:
+        _stop_thinking()
         if ws:
             try:
                 ws.close()
