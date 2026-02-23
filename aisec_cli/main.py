@@ -221,22 +221,22 @@ def cmd_scan(args):
             elif msg_type == "finding":
                 findings_count += 1
 
-            elif msg_type == "cost_update":
-                total_cost = data.get("cost", total_cost)
+            elif msg_type in ("credits_update", "cost_update"):
+                total_cost = data.get("credits_used", data.get("cost", total_cost))
 
             elif msg_type == "error":
                 console.print(f"[red][ERROR] {data.get('message', 'Unknown error')}[/red]")
 
             elif msg_type == "scan_complete":
                 findings_count = data.get("findings", findings_count)
-                total_cost = data.get("cost", total_cost)
+                total_cost = data.get("credits_used", data.get("cost", total_cost))
                 duration = data.get("duration", time.time() - start_time)
 
                 console.print()
                 console.print(Panel.fit(
                     f"[bold green]Scan Complete[/bold green]\n"
                     f"[dim]Findings:[/dim] {findings_count}\n"
-                    f"[dim]Cost:[/dim]     ${total_cost:.2f}\n"
+                    f"[dim]Credits:[/dim]  {total_cost:.1f}\n"
                     f"[dim]Duration:[/dim] {int(duration)}s",
                     border_style="green",
                 ))
@@ -291,7 +291,7 @@ def cmd_scans(args):
         color = status_colors.get(status, "white")
         domain = s.get("domain", "?")
         findings = s.get("findings_count", 0)
-        cost = s.get("total_cost", 0)
+        cost = s.get("credits_used", s.get("total_cost", 0))
         sid = str(s.get("id", ""))[:8]
         created = s.get("created_at", "")[:10]
 
@@ -299,7 +299,7 @@ def cmd_scans(args):
             f"  [{color}]{status:<10}[/{color}] "
             f"[cyan]{domain:<30}[/cyan] "
             f"{findings:>3} findings  "
-            f"${cost:>6.2f}  "
+            f"{cost:>6.1f} cr  "
             f"[dim]{created}  {sid}[/dim]"
         )
 
@@ -336,7 +336,7 @@ def cmd_status(args):
         console.print(
             f"[dim]  Scans: {stats.get('total_scans', 0)} | "
             f"Findings: {stats.get('total_findings', 0)} | "
-            f"Cost: ${stats.get('total_cost', 0):.2f}[/dim]"
+            f"Credits used: {stats.get('credits_used', stats.get('total_cost', 0)):.1f}[/dim]"
         )
     except SystemExit:
         raise

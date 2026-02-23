@@ -35,5 +35,5 @@ aisec = "aisec_cli.main:main"
 packages = ["aisec_cli"]
 
 [project.urls]
-Homepage = "https://github.com/stuseek/aisec-cli"
-Repository = "https://github.com/stuseek/aisec-cli"
+Homepage = "https://github.com/aisec-foundation/cli-python"
+Repository = "https://github.com/aisec-foundation/cli-python"
