@@ -118,13 +118,24 @@ def cmd_scan(args):
     if args.skip_browser:
         body["skip_browser"] = True
 
+    # ── Fetch account info ──────────────────────────────────────────
+    account_plan = "?"
+    account_credits = 0.0
+    try:
+        me = requests.get(f"{api_url}/api/v1/auth/me", headers=headers, timeout=5).json()
+        account_plan = me.get("plan", "free")
+        account_credits = float(me.get("credits_balance", 0))
+    except Exception:
+        pass
+
     # ── Create scan ────────────────────────────────────────────────
     opts_str = ", ".join(f"{k}={v}" for k, v in body.items() if k != "target")
 
     console.print(Panel.fit(
         f"[bold red]aisec — Remote Scan[/bold red]\n"
-        f"[dim]Target:[/dim] [bold]{target}[/bold]\n"
-        f"[dim]API:[/dim]    {api_url}\n"
+        f"[dim]Target:[/dim]  [bold]{target}[/bold]\n"
+        f"[dim]Account:[/dim] {account_plan} · [bold yellow]{account_credits:.1f}[/bold yellow] credits\n"
+        f"[dim]API:[/dim]     {api_url}\n"
         + (f"[dim]Config:[/dim]  {opts_str}" if opts_str else ""),
         border_style="red",
     ))
@@ -232,12 +243,20 @@ def cmd_scan(args):
                 total_cost = data.get("credits_used", data.get("cost", total_cost))
                 duration = data.get("duration", time.time() - start_time)
 
+                # Fetch remaining credits
+                remaining = "?"
+                try:
+                    me = requests.get(f"{api_url}/api/v1/auth/me", headers=headers, timeout=5).json()
+                    remaining = f"{float(me.get('credits_balance', 0)):.1f}"
+                except Exception:
+                    pass
+
                 console.print()
                 console.print(Panel.fit(
                     f"[bold green]Scan Complete[/bold green]\n"
-                    f"[dim]Findings:[/dim] {findings_count}\n"
-                    f"[dim]Credits:[/dim]  {total_cost:.1f}\n"
-                    f"[dim]Duration:[/dim] {int(duration)}s",
+                    f"[dim]Findings:[/dim]  {findings_count}\n"
+                    f"[dim]Credits:[/dim]   {total_cost:.1f} used · [bold yellow]{remaining}[/bold yellow] remaining\n"
+                    f"[dim]Duration:[/dim]  {int(duration)}s",
                     border_style="green",
                 ))
                 break
