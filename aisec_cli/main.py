@@ -63,7 +63,7 @@ def cmd_scan(args):
         sys.exit(1)
 
     # ── Build scan body ────────────────────────────────────────────
-    body = {"target": target}
+    body = {"target": target, "source": "cli"}
 
     # Engine / model
     if args.engine:
@@ -74,6 +74,8 @@ def cmd_scan(args):
     # Profile
     if args.full:
         body["profile"] = "full"
+    elif args.bounty:
+        body["profile"] = "bounty"
     elif args.aggressive:
         body["profile"] = "aggressive"
     elif args.stealth:
@@ -458,6 +460,8 @@ def main():
                       help="Aggressive: full port scan, brute force, sqlmap")
     mode.add_argument("--full", action="store_true",
                       help="Full scan: aggressive + subdomain scope + 50 iterations")
+    mode.add_argument("--bounty", action="store_true",
+                      help="Bug bounty: high-impact vulns, skip noise, PoC-ready output")
 
     # Scan control
     scan_p.add_argument("--max-iterations", "-n", type=int, help="Max iterations (default: 50)")
