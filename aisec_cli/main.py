@@ -71,6 +71,10 @@ def cmd_scan(args):
     if args.model:
         body["model"] = args.model
 
+    # Scan type
+    if args.scan_type and args.scan_type != "web":
+        body["scan_type"] = args.scan_type
+
     # Profile
     if args.full:
         body["profile"] = "full"
@@ -92,6 +96,10 @@ def cmd_scan(args):
     # AI tuning
     if args.temperature is not None:
         body["temperature"] = args.temperature
+    if args.review_model:
+        body["review_model"] = args.review_model
+    if args.cost_cap:
+        body["cost_cap"] = args.cost_cap
 
     # Auth
     if args.username:
@@ -127,6 +135,28 @@ def cmd_scan(args):
         body["skip_recon"] = True
     if args.skip_browser:
         body["skip_browser"] = True
+
+    # Advanced
+    if args.localstorage:
+        ls_val = args.localstorage
+        if ls_val.startswith("@"):
+            with open(ls_val[1:]) as f:
+                ls_val = f.read()
+        body["localstorage_json"] = ls_val
+    if args.custom_instructions:
+        body["custom_instructions"] = args.custom_instructions
+    if args.disable_tools:
+        body["disabled_tools"] = [t.strip() for t in args.disable_tools.split(",")]
+    if args.disable_enrichments:
+        body["disabled_enrichments"] = [e.strip() for e in args.disable_enrichments.split(",")]
+    if args.out_of_scope:
+        body["out_of_scope"] = [s.strip() for s in args.out_of_scope.split(",")]
+    if args.wordlist:
+        body["wordlist"] = args.wordlist
+    if args.auto_compact:
+        body["auto_compact"] = True
+    if args.project_id:
+        body["project_id"] = args.project_id
 
     # ── Fetch account info ──────────────────────────────────────────
     account_plan = "?"
@@ -447,10 +477,15 @@ def main():
     scan_p.add_argument("--token", help="API token (or AISEC_TOKEN env)")
     scan_p.add_argument("--api", help="API URL (or AISEC_API env)")
 
+    # Scan type
+    scan_p.add_argument("--scan-type", choices=["web", "network", "crypto"],
+                        default="web", help="Scan type (default: web)")
+
     # Engine
     scan_p.add_argument("--engine", "-e", choices=["claude", "ollama"],
                         help="AI engine (default: claude)")
     scan_p.add_argument("--model", "-m", help="Model name")
+    scan_p.add_argument("--review-model", help="Review model (default: claude-sonnet-4-6)")
 
     # Profiles
     mode = scan_p.add_mutually_exclusive_group()
@@ -484,9 +519,30 @@ def main():
     scan_p.add_argument("--headers",
                         help="Custom headers as Key:Value pairs, comma-separated or @filepath")
 
+    # Cost
+    scan_p.add_argument("--cost-cap", type=float, help="Max credits to spend (0=no limit)")
+
     # Recon control
     scan_p.add_argument("--skip-recon", action="store_true", help="Skip all recon")
     scan_p.add_argument("--skip-browser", action="store_true", help="Skip browser recon only")
+
+    # Advanced
+    scan_p.add_argument("--localstorage",
+                        help="Browser localStorage as JSON string or @filepath")
+    scan_p.add_argument("--custom-instructions",
+                        help="Free-text guidance for the AI agent (max 500 chars)")
+    scan_p.add_argument("--disable-tools",
+                        help="Comma-separated tools to disable (e.g. sqlmap,hydra,nikto)")
+    scan_p.add_argument("--disable-enrichments",
+                        help="Comma-separated enrichments to disable (e.g. leak_check,shodan)")
+    scan_p.add_argument("--out-of-scope",
+                        help="Comma-separated domains/paths to exclude (e.g. payments.example.com,/admin)")
+    scan_p.add_argument("--wordlist", choices=["common", "big", "api-endpoints"],
+                        help="Wordlist for directory brute force")
+    scan_p.add_argument("--auto-compact", action="store_true",
+                        help="Auto-compact context for long scans (saves credits)")
+    scan_p.add_argument("--project-id",
+                        help="Assign scan to a project by ID")
 
     # ── scans ───────────────────────────────────────────────
     scans_p = sub.add_parser("scans", help="List recent scans")
