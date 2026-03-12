@@ -36,7 +36,7 @@ THINKING_VERBS = [
     "Mapping", "Enumerating", "Fingerprinting", "Strategizing",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 DEFAULT_API = "https://api.aisec.tools"
 
 
