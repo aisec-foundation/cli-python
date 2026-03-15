@@ -1,16 +1,16 @@
-# aisec
+# AISEC CLI
 
-AI-driven autonomous penetration testing CLI.
+AI-powered autonomous penetration testing from the command line. Run security scans that think like a human pentester — powered by [AISEC](https://aisec.tools).
 
 ## Install
 
 ```bash
-pip install git+https://github.com/stuseek/aisec-cli.git
+pip install git+https://github.com/aisec-foundation/cli-python.git
 ```
 
 ## Setup
 
-Get your API token from the dashboard at [app.aisec.tools](https://app.aisec.tools) → Settings → Generate Key:
+Get your API token from the [AISEC Dashboard](https://app.aisec.tools) → Developer → Generate Key:
 
 ```bash
 export AISEC_TOKEN=ask_your_token_here
@@ -145,3 +145,14 @@ aisec scans [options]
 
 aisec status             Check API connection and authentication
 ```
+
+## Links
+
+- [AISEC Website](https://aisec.tools) — AI-powered penetration testing platform
+- [Dashboard](https://app.aisec.tools) — manage scans, view findings
+- [Documentation](https://aisec.tools/how-it-works) — how it works
+- [Node.js CLI](https://github.com/aisec-foundation/cli-node) — alternative CLI
+
+## License
+
+MIT
